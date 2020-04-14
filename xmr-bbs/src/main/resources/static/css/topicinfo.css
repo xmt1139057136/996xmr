@@ -1,0 +1,25 @@
+.rtopic-tag {
+    text-decoration-line: none;
+    cursor: pointer;
+    display: inline-block;
+    height: 20px;
+    line-height: 16px;
+    padding: 2px 5px;
+    background-color: #99cfff;
+    font-size: 12px;
+    color: #fff !important;
+    border-radius: 4px;
+    margin: 4px;
+    float: left;
+}
+.rtopic-tag a{color: #fff;}
+.topic_header{overflow: hidden;padding: 10px 20px;}
+.topic_header .topic_img{float: left;}
+.topic_header .follow_topic{float: right;}
+.topic_title{font-size: 24px;font-weight:500;display: inline-block;margin-left: 20px;}
+.topic_nav .topic_sort_list{margin: 0px;padding: 0px;margin-top: 20px;border-bottom: 1px solid #e6e6e6;overflow: hidden;}
+.topic_nav .topic_sort_list li{float: left;padding:0px 15px;padding-bottom: 8px;}
+.topic_nav .topic_sort_list li a{cursor: pointer;text-decoration: none;}
+.topic_nav .active{border-bottom: 2px solid slateblue;}
+.question{margin-left: 20px;}
+.rightwrapper{height: 800px;}

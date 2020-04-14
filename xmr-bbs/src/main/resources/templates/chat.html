@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>社区闲聊</title>
+    <script src="webjars/jquery/3.1.1/jquery.min.js" th:src="@{/webjars/jquery/3.1.1/jquery.min.js}"></script>
+    <script src="webjars/bootstrap/3.3.5/js/bootstrap.min.js" th:src="@{/webjars/bootstrap/3.3.5/js/bootstrap.min.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/iconfont2.css}">
+    <link rel="stylesheet" th:href="@{/css/iconfont.css}">
+    <link rel="stylesheet" th:href="@{/css/my.css}">
+    <link rel="stylesheet" href="webjars/bootstrap/3.3.5/css/bootstrap.min.css" th:href="@{/webjars/bootstrap/3.3.5/css/bootstrap.min.css}"/>
+</head>
+<style>
+    .band{background-color: #ffff;</style>
+<body>
+<!--引入导航条-->
+<div th:insert="~{navbar :: navbar}"></div>
+<div class="container">
+    <div class="jumbotron band">
+        <h1>聊天室</h1>
+        <p>
+           各位胸弟，聊一下吧，不要钱的 ~
+        </p>
+        <p><a class="btn btn-primary btn-lg" th:href="@{/}" role="button">狠心离开</a></p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="panel panel-default">
+        <!-- Default panel contents -->
+        <div class="panel-heading">
+            <span class="label label-success">社区闲聊规范</span></div>
+        <div class="panel-body">
+            <p>使用方法：点击右下角的聊天图标，你就可以进入到本站的聊天室了，小伙伴们记住了，如果你没用登入本站，您将使用匿名身份来聊天，即使用微信扫码聊天
+            ,如果您已经登入，将使用你当前的用户来聊天哟~</p>
+        </div>
+        <!-- List group -->
+        <ul class="list-group">
+            <li class="list-group-item">1. 不发表黄图。</li>
+            <li class="list-group-item">2. 不辱骂，不嘲讽，当一个有素质的程序员。</li>
+            <li class="list-group-item">3. 一定不要发带诅咒，转运的信息。</li>
+            <li class="list-group-item">4. 反驳别人的使用 😂,会显得你比较客气。</li>
+            <li class="list-group-item">5. 我去吃饭了/我去洗澡了”的意思是：这个话题聊的差不多了，我觉得已经稍显尴尬了。</li>
+            <li class="list-group-item">6. 不知道说什么的时候，发表情包就可以了。</li>
+            <li class="list-group-item">7. 既然不想回复对方，那就要“装”出一幅“我不在”的样子来啊。</li>
+            <li class="list-group-item">8. 严禁搞基,被发现直接拉黑。</li>
+            <li class="list-group-item">9.不要向别人随便要图片，尤其是男生~</li>
+            <li class="list-group-item">10. 骂人就不要了，我们一群文明的程序员。</li>
+            <li class="list-group-item">11. 以上规范看看就好别当真，可以开车，车速控制好就可以。</li>
+            <li class="list-group-item">12. 真想不出来写啥了，就这样吧~</li>
+        </ul>
+    </div>
+
+</div>
+</body>
+
+</html>
+<form id="chat_form">
+    <input type="hidden" name="xlm_uid" id="xlm_uid" th:value="${session.xlm_uid}">
+    <input type="hidden" name="xlm_name" id="xlm_name" th:value="${session.xlm_name}">
+    <input type="hidden" name="xlm_avatar" id="xlm_avatar" th:value="${session.xlm_avatar}">
+    <input type="hidden" name="xlm_avatar" id="xlm_time" th:value="${session.xlm_time}">
+    <input type="hidden" name="xlm_hash" id="xlm_hash" th:value="${session.xlm_hash}">
+</form>
+<script>
+    var xlm_wid = '14876';
+    var xlm_url = 'https://www.xianliao.me/';
+    var xlm_uid = $("#xlm_uid").val(); //登录用户的ID，游客使用0
+    var xlm_name = $("#xlm_name").val(); //登录用户的用户名，游客使用空字符
+    var xlm_avatar = $("#xlm_avatar").val();//登录用户的头像URL，游客使用空字符
+    var xlm_time = $("#xlm_time").val(); //现在服务器的Linux timestamp, 如：1481673726
+    var xlm_hash = $("#xlm_hash").val(); //为保障用户的登录安全，xlm_hash须在后台生成，见下附的xlm_hash的生成方法
+</script>
+<script type='text/javascript' charset='UTF-8' src='https://www.xianliao.me/embed.js'></script>

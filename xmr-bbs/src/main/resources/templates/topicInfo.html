@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>话题详细</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/topicinfo.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/my.css}"/>
+    <link rel="stylesheet" href="webjars/bootstrap/3.3.5/css/bootstrap.min.css" th:href="@{/webjars/bootstrap/3.3.5/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/iconfont.css}">
+    <script src="webjars/jquery/3.1.1/jquery.min.js" th:src="@{/webjars/jquery/3.1.1/jquery.min.js}"></script>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/css.css}"/>
+    <link rel="stylesheet" th:href="@{/css/nprogress.css}">
+    <script th:src="@{/js/nprogress.js}"></script>
+    <script src="webjars/bootstrap/3.3.5/js/bootstrap.min.js" th:src="@{/webjars/bootstrap/3.3.5/js/bootstrap.min.js}"></script>
+    <script th:src="@{/layer/layer.js}"></script>
+    <script th:src="@{/js/topicinfodata.js}"></script>
+</head>
+<style>
+    #rtopic_wrapper a{text-decoration: none;}
+    #topic_user{border: 1px solid #7777;cursor: pointer;width: 30px;margin-left: 5px;margin-top: 8px;}
+</style>
+<script>
+
+    $(function () {
+        $(".topic_sort_list li").click(function () {
+            $("#sortBy").attr("sortBy","");
+            $(".topic_sort_list li").removeClass("active");
+            $(this).addClass("active");;
+            $("#sortBy").attr("sortBy",$(this).find("a").attr("id"));
+            to_page(1);
+        });
+        //获取用户的关注话题的状态
+        $.get("/topic/getFollowStatus",{"id":$(".topicdomain").attr("id"),"time":new Date()},function (data) {
+            if(data.extend.followStatus==1){
+                $(".follow_topic a").removeClass("btn-success");
+                $(".follow_topic a").addClass("btn-default");
+                $(".follow_topic a").attr("onclick","unfollowTopic()");
+                $(".follow_btn").text("取消关注 | "+parseInt($("#f_count").val()));
+            }else if(data.extend.followStatus==0){
+                $(".follow_topic a").removeClass("btn-default");
+                $(".follow_topic a").addClass("btn-success");
+                $(".follow_topic a").attr("onclick","followTopic()");
+                $(".follow_btn").text("关注 | "+parseInt($("#f_count").val()));
+            }
+        })
+    })
+    //关注话题
+    function followTopic() {
+        var id=$(".topicdomain").attr("id");
+       $.get("/topic/follow",{"id":id,"time":new Date()},function (data) {
+           if(data.code==1000){
+                //成功页面上的关注数添加
+                layer.msg("关注话题成功", {time: 500, icon: 1, shift: 0}, function () {
+                 setFollowed(data.extend.followCount);
+                });
+           }else {
+               layer.msg(data.message, {time: 1800, icon: 5, shift: 6}, function () {
+               });
+           }
+       })
+        return false;
+    }
+    //取消关注话题
+    function unfollowTopic() {
+        var id=$(".topicdomain").attr("id");
+        $.get("/topic/unFollowTopic",{"id":id,"time":new Date()},function (data) {
+            if(data.code==1000){
+                //成功页面上的关注数添加
+                 layer.msg("已取消关注", {time: 500, icon: 1, shift: 0}, function () {
+                   setUnFollowed(data.extend.followCount);
+                 });
+            }else {
+                layer.msg(data.message, {time: 1800, icon: 5, shift: 6}, function () {
+                });
+            }
+        })
+        return false;
+        
+    }
+    //状态
+    function setFollowed(currentCount) {
+        $(".follow_topic a").removeClass("btn-success");
+        $(".follow_topic a").addClass("btn-default");
+        $(".follow_topic a").attr("onclick","unfollowTopic()");
+        $(".follow_btn").text("取消关注 | "+(currentCount));
+    }
+    function setUnFollowed(currentCount) {
+        $(".follow_topic a").removeClass("btn-default");
+        $(".follow_topic a").addClass("btn-success");
+        $(".follow_topic a").attr("onclick","followTopic()");
+        $(".follow_btn").text("关注 | "+(currentCount));
+    }
+
+</script>
+<style>
+    .follow_topic .btn-default{background-color: #999999;color: #ffff;}
+</style>
+<body>
+<form id="sortby_form">
+    <input type="hidden" name="tag" id="sortBy" sortBy="all">
+</form>
+<!--引入导航条-->
+<div th:insert="~{navbar :: navbar}"></div>
+<!--内容部分-->
+<div class="container main">
+    <input type="hidden" id="f_count" th:value="${topic.followCount}">
+    <input class="topicdomain" type="hidden" th:id="${topic.id}">
+    <div class="row">
+        <!--左边部分-->
+        <div class="col-lg-9 col-md-12 col-sm-12 container-fluid" style="border: 1px solid #eeeeff;">
+            <div class="topic_header">
+                <div  class="topic_img">
+                    <img th:width="50" th:src="${topic.image}">
+                    <span class="topic_title" th:text="${topic.title}"></span>
+                </div>
+                <div class="follow_topic">
+                    <a onclick="followTopic();" class="btn  btn-md  follow_btn">
+                    </a>
+                </div>
+            </div>
+            <div class="topic_nav">
+                <ul class="topic_sort_list">
+                  <li class="active"><a id="all">全部内容</a></li>
+                  <li><a id="jh">精华</a></li>
+                  <li><a id="tj">推荐</a></li>
+                  <li><a id="wt">问题</a></li>
+                  <li><a id="wz">文章</a></li>
+                  <li><a id="about">关于话题</a></li>
+                </ul>
+            </div>
+            <!--问题列表-->
+            <div id="no_quetions" class="text-center" style="margin-top: 50px; display: none;" >暂无更多</div>
+            <div id="question_wrapper">
+            </div>
+            <!--分页导航-->
+            <span class="page_info-area" style="font-size: 12px;"></span>
+            <nav aria-label="Page navigation" style="font-size: 12px;">
+                <ul class="pagination">
+                </ul>
+            </nav>
+        </div>
+        <div class="col-lg-3 col-md-12 col-sm-12 container-fluid rightwrapper">
+            <h4>话题描述</h4>
+            <hr>
+            <small th:text="${topic.simpleDesc}"></small>
+            <hr>
+            <h4>相关话题</h4>
+            <div class="mod-body clearfix" style="overflow: hidden;width: 100%;">
+                <div  class="aw-topic-bar">
+                    <div id="rtopic_wrapper"  class="topic-bar clearfix" style="float: left;">
+
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <h5><span id="user_count"></span>人关注该话题</h5>
+            <div id="userlist_wrapper">
+
+            </div>
+        </div>
+    </div>
+</div>
+<!--页尾-->
+<div th:insert="~{footer :: footer}"></div>
+</body>
+</html>
+<script>
+    //弹出登入框
+    $('.login_btn').click(function () {
+        $(".login_modal").modal("show");
+        return false;
+    })
+</script>
+<script>
+    $("#dologin_btn").click(function () {
+        var username=$("#login_username").val().trim();
+        var password=$("#login_password").val().trim();
+        if(username==null||username==""){
+            layer.msg("用户名不能为空", {time: 2000, icon: 5, shift: 6}, function () {
+            });
+            return false;
+        }
+        if(password==null||password==""){
+            layer.msg("密码不能为空", {time: 2000, icon: 5, shift: 6}, function () {
+            });
+            return false;
+        }
+        $.post("/login",{"username":username,"password":password,"time":new Date()},function (data) {
+            if(data.code==1000){
+                swal("恭喜你已登入成功~", "稍作等待，正在努力跳转中~", "success",
+                    {
+                        buttons: false,
+                        timer: 2500,
+                    })
+                    .then((value) => {
+                    window.location.href="/";
+            });
+            }else {
+                layer.msg(data.message, {time: 2000, icon: 5, shift: 6}, function () {
+                });
+            }
+        })
+    });
+</script>

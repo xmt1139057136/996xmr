@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>[[${errormessage}]]</title>
+    <link rel="stylesheet" href="webjars/bootstrap/3.3.5/css/bootstrap.min.css" th:href="@{/webjars/bootstrap/3.3.5/css/bootstrap.min.css}"/>
+</head>
+<body>
+<style>
+    body{
+        background-color: #f4f4f4;
+    }
+    *{
+        margin: 0px;
+        padding: 0px;
+    }
+    .my{margin-top: 100px;}
+</style>
+<!--引入导航条-->
+<div th:insert="~{navbar :: navbar}"></div>
+<script type="text/javascript" th:src="@{/js/test-clear.js}" opacity= 0.6></script>
+<div class="container my text-center">
+    <div>
+        <br>
+        <br>
+        <br>
+        <h1>抱歉服务器，又炸了,杀个程序员祭天~</h1><br>
+        <br>
+        <p th:text="${errormessage}">...</p>
+        <br>
+        <br>
+        <br>
+        <br>
+         <a class="btn btn-primary btn-lg" th:href="@{/}" role="button">狠心离开</a></p>
+    </div>
+</div>
+<script src="webjars/jquery/3.1.1/jquery.min.js" th:src="@{/webjars/jquery/3.1.1/jquery.min.js}"></script>
+<script src="webjars/bootstrap/3.3.5/js/bootstrap.min.js" th:src="@{/webjars/bootstrap/3.3.5/js/bootstrap.min.js}"></script>
+
+</body>
+</html>

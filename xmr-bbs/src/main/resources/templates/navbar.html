@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/iconfont.css}">
+    <title>Title</title>
+</head>
+<body>
+<!--导航条inverse-->
+<div th:fragment="navbar">
+    <!--登入模态框-->
+    <div class="modal fade login_modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h2 class="modal-title text-center" id="myModalLabel">欢迎登入</h2>
+                </div>
+                <div class="modal-body ">
+                    <form class="form-horizontal" role="form" th:action="@{/login}">
+                        <!--用户框-->
+                        <div class="form-group">
+                            <label for="username" class="col-sm-2 control-label glyphicon glyphicon-user" ></label>
+                            <div class="col-sm-10">
+                                <input type="text" name="username" class="form-control" id="login_username" placeholder="请输入用户名" required="required">
+                            </div>
+                        </div>
+                        <!--密码框-->
+                        <div class="form-group">
+                            <label for="password"  class="col-sm-2 control-label glyphicon glyphicon-lock" ></label>
+                            <div class="col-sm-10">
+                                <input type="password" name="password" class="form-control" id="login_password" placeholder="请输入密码" required="required">
+                            </div>
+                        </div>
+                        <!--记住密码-->
+                        <div class="form-group">
+                            <div class="col-sm-offset-2 col-sm-10">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox"> 记住密码
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right" style="margin-bottom: 10px;">
+                            <button type="button" id="dologin_btn" class="btn btn-default">立即登录</button>
+                            <button type="button" class="btn btn-default" data-dismiss="modal">取消登入</button>
+                        </div>
+
+                        <div class="modal-footer">
+                            <div class="text-center" style="font-size: 11px; color: #303030;">第三方授权账号登入</div>
+                            <br>
+                            <div>
+                                <div class="col-md-4 text-center">
+                                    <a th:href="${#request.getServletContext().getAttribute('loginUrl')}">
+                                        <img th:width="30" th:src="@{/images/github.svg}" alt="" width="36" height="36">
+                                        <p style="font-size: 12px">github 登录
+                                        </p>
+                                    </a>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <a th:href="${#request.getServletContext().getAttribute('qq_loginUrl')}">
+                                        <img th:width="30" th:src="@{/images/qq.svg}" alt="" width="36" height="36">
+                                        <p style="font-size: 12px">QQ登录
+                                        </p>
+                                    </a>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <a th:href="${#request.getServletContext().getAttribute('baidu_loginUrl')}">
+                                        <img th:width="30" th:src="@{/images/baidu.svg}" alt="" width="36" height="36">
+                                        <p style="font-size: 12px">百度登录</p>
+                                    </a>
+                                </div>
+
+
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <!-- 模态框（Modal） -->
+    <!-- 注册窗口 -->
+         <div id="register" class="zc_modal modal fade" tabindex="-1">
+             <div class="modal-dialog">
+                 <div class="modal-content">
+                     <div class="modal-body">
+                         <button class="close" data-dismiss="modal">
+                             <span>&times;</span>
+                         </button>
+                     </div>
+                     <div class="modal-title">
+                         <h1 class="text-center">注册</h1>
+                     </div>
+                     <div class="modal-body">
+                         <form class="form-group" th:action="@{/register}" method="post">
+                                 <div class="form-group">
+                                     <label for="name">用户名</label>
+                                     <input class="form-control" id="name" name="name" type="text" placeholder="6-16位字母或数字">
+                                 </div>
+                                 <div class="form-group">
+                                     <label for="password1">密码</label>
+                                     <input name="password1" id="password1" class="form-control" type="password" placeholder="密码长度要大于6位字母或数字">
+                                 </div>
+                                 <div class="form-group">
+                                     <label for="password2">再次输入密码</label>
+                                     <input class="form-control" id="password2" name="password2" type="password" placeholder="密码长度要大于6位，由数字和字母组成">
+                                 </div>
+                                 <div class="form-group">
+                                     <label for="phone">手机号码</label>
+                                     <input class="form-control phone" id="phone"  type="phone" placeholder="输入大陆合法的电话号码">
+                                 </div>
+                             <label for="code">验证码</label>
+                                 <div class="row">
+                                     <div class="col-md-8">   <input type="code"  class="form-control" name="code" id="code"></div>
+                                     <div class="col-md-4"> <input type="button" disabled value="获取验证码" name="yzm" class="yzm form-control btn btn-success btn-sm" ></div>
+                                 </div>
+
+
+                             <br>
+                             <br>
+                                 <div class="text-right">
+                                     <button class="btn btn-default" id="zc" type="button">注册</button>
+                                     <button class="btn btn-default" data-dismiss="modal">取消</button>
+                                 </div>
+                                 <a href="" data-toggle="modal" data-dismiss="modal" data-target="#login">已有账号？点我登录</a>
+                         </form>
+                     </div>
+                 </div>
+             </div>
+         </div>
+    <!--导航-->
+    <nav class="navbar navbar-default " style="">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" th:href="@{/}">996写码人</a>
+            </div>
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li th:class="${navLi=='find'? 'active':'' }"><a th:href="@{/}">发现 <span class="sr-only">(current)</span></a></li>
+                    <li th:class="${navLi=='topic'? 'active':'' }"><a th:href="@{/topic}" href="#">话题</a></li>
+                </ul>
+                <form class="navbar-form navbar-left" th:action="@{/}" method="get">
+                    <div class="form-group">
+                        <input type="text" th:name="search" th:value="${search}" class="form-control" placeholder="搜索问题,话题或人">
+                    </div>
+                    <button type="submit" class="btn btn-default">搜索</button>
+                </form>
+                <!--导航栏广告链接-->
+                <ul class="nav navbar-nav">
+                    <!-- <li th:class="${navLi=='chat'? 'active':'' }"><a th:href="@{/chat}" href="#">闲聊</a></li>
+                    <li th:each="ad:${#session.getAttribute('NAV')}"><a target="_blank" th:href="${ad.url}" th:text="${ad.title}">源码</a></li> -->
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li th:class="${navLi=='publish'? 'active':'' }"><a href="#" th:href="@{/publish}">发帖</a></li>
+                    <li>
+                        <a href="#" th:href="@{/profile?action=replies}">
+                            <span style="font-size: 18px;" class="iconfont icon-tongzhi1"></span>
+                            <span th:if="${session.unreadcount>0}" class="badge" style="background: #f40"
+                                  th:text="${session.unreadcount}"></span>
+                        </a>
+                    </li>
+
+                    <li id="me" class="dropdown" th:if="${session.user!=null}">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                            <img class="img-rounded" width="20px" th:src="${session.user.getAvatarUrl()}" alt="...">
+                            <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a th:href="@{/profile}">我的主页</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a th:href="@{/logout}">退出登入</a></li>
+                        </ul>
+                    </li>
+                    <li th:if="${session.user==null}"><a class="login_btn" style="cursor: pointer;">登入</a>
+                    </li>
+                    <li th:if="${session.user==null}"><a class="zc_btn" style="cursor: pointer;">注册</a>
+                    </li>
+                    <!-- <li th:if="${session.user==null}">
+                        <a title="QQ登入" th:href="${#request.getServletContext().getAttribute('qq_loginUrl')}" style="cursor: pointer;">
+                            <img th:height="22" src="http://www.zykcoderman.xyz/images/qq.svg">
+                        </a>
+                    </li>
+                    </li>
+                    <li th:if="${session.user==null}">
+                        <a title="百度登入" th:href="${#request.getServletContext().getAttribute('baidu_loginUrl')}" style="cursor: pointer;">
+                        <img th:height="22" src="http://www.zykcoderman.xyz/images/baidu.svg">
+                    </a>
+                    </li> -->
+                    <!--<li th:if="${session.user==null}"><a th:href="${#request.getServletContext().getAttribute('loginUrl')}">登入</a>-->
+                    <!--</li>-->
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+
+</body>
+</html>

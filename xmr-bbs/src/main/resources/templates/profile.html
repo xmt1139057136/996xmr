@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>个人中心</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="stylesheet" th:href="@{/css/my.css}">
+    <link rel="stylesheet" th:href="@{/css/iconfont.css}">
+    <link rel="stylesheet" href="webjars/bootstrap/3.3.5/css/bootstrap.min.css" th:href="@{/webjars/bootstrap/3.3.5/css/bootstrap.min.css}"/>
+    <script src="webjars/jquery/3.1.1/jquery.min.js" th:src="@{/webjars/jquery/3.1.1/jquery.min.js}"></script>
+    <script th:src="@{/js/sweetalert.min.js}"></script>
+    <script src="webjars/bootstrap/3.3.5/js/bootstrap.min.js" th:src="@{/webjars/bootstrap/3.3.5/js/bootstrap.min.js}"></script>
+</head>
+<style>
+
+    .nav_list a{cursor: pointer;color: #00a1d6;font-weight: 700;font-size: 12px;margin-left: 5px;}
+    .people_detail{font-size: 14px;color: #303030;font-weight: normal;border-radius: 5px;overflow: hidden;font-size: 11px;}
+    .question_btn_wrapper{position: absolute;right: 0;bottom: 2px;font-size: 14px;}
+    .question{position: relative}
+    .left{opacity: 0.8;
+        background-color: #FFFFFF;
+        cursor: pointer;position: relative;
+        overflow: hidden;
+        border-radius: 6px;color: #fff;}
+</style>
+<body>
+<!--引入导航条-->
+<div th:insert="~{navbar :: navbar}"></div>
+<!--主题数据展示--->
+<div class="container main" style="margin-top: 10px;">
+    <div class="col-lg-9 col-md-12 col-sm-12 lefwrapper">
+        <!--导航栏-->
+        <div class="container" style="margin-bottom: 10px;">
+            <ul class="nav_list nav nav-pills">
+                <li role="presentation" class="active"> <a id="questions">我的问题</a></li>
+                <li role="presentation"> <a id="collects">我的收藏</a></li>
+                <li role="presentation"> <a id="replies">我的通知</a></li>
+                <li role="presentation"> <a id="follows">我的关注</a></li>
+                <li role="presentation"> <a id="fans">我的粉丝</a></li>
+            </ul>
+        </div>
+        <hr>
+        <!--我的问题-->
+        <row id="my_data_wrapper">
+        </row>
+        <!--分页导航-->
+        <span class="page_info-area" style="font-size: 12px;"></span>
+        <nav aria-label="Page navigation" style="font-size: 12px;">
+            <ul class="pagination">
+            </ul>
+        </nav>
+    </div>
+    <div class="col-lg-3 col-md-12 col-sm-12 rightwrapper" style="height: 800px;" >
+        <div class="header_top ">
+            <div class="left text-center">
+                <img  width="100%" class="img-rounded " th:src="${people.avatarUrl}">
+                <div class="people_detail" style="margin-top: 20px;">
+                    <div class="name">昵称：<span th:text="${people.name}"></span></div>
+                    <span th:if="${people.location!=null}" class="location">位置：<span th:text="${people.location}"></span>
+                    <div th:if="${people.company!=null}"  class="commpany">公司：<span th:text="${people.company}"></span></div>
+                <p th:if="${people.bio!=null}"  class="bio">简介：<span th:text="${people.bio}"></span></p>
+                </div>
+                <div class="my_modal"></div>
+            </div>
+
+        </div>
+        <hr>
+        <div class="right">
+            <ul class="list-group">
+                <a href="#" class="list-group-item ">
+                    <span class="badge" th:text="${peopleDetails.followCount}"></span>
+                    <span class="glyphicon glyphicon-th-list"></span>我的问题
+                </a>
+                <a href="#" class="list-group-item ">
+                    <span class="badge" th:text="${peopleDetails.followCount}"></span>
+                    <span class="glyphicon glyphicon-grain"></span>我关注的人
+                </a>
+                <a href="#" class="list-group-item ">
+                    <span class="badge" th:text="${peopleDetails.fanCount}"></span>
+                    <span class="glyphicon glyphicon-user"></span> 我的粉丝
+                </a>
+                <a href="#" class="list-group-item">
+                    <span class="badge" th:text="${peopleDetails.collectCount}"></span>
+                    <span class="glyphicon glyphicon-heart"></span> 我的收藏
+                </a>
+                <a href="#" class="list-group-item">
+                    <span class="badge" th:text="${peopleDetails.integral}"></span>
+                    <span class="glyphicon glyphicon-heart"></span> 我的积分
+                </a>
+            </ul>
+
+        </div>
+    </div>
+</div>
+<input type="hidden" id="profile_action" th:value="${action}">
+<div th:insert="~{footer :: footer}"></div>
+</body>
+<script th:src="@{/layer/layer.js}"></script>
+<script>
+    $(".nav_list li").click(function () {
+        $(".nav_list li").removeClass("active");
+        $(this).addClass("active");
+        var action= $(this).find("a").attr("id");
+        if(action=="follows"){
+            //加载我的关注
+            loadMyFollows();
+            return;
+        }else if(action=="replies") {
+            loadMyReplies()
+            return;
+        } else if(action=="fans") {
+            loadMyFans()
+            return;
+        }
+        else{
+            to_page(1, action);
+        }
+    })
+</script>
+<script>
+    $(function () {
+        //总记录数
+        var totalpageo;
+        //当前页
+        var currentpage;
+        var action="questions";
+
+        if($("#profile_action").val()!=null&& $("#profile_action").val()!=""){
+            action=$("#profile_action").val();
+        }
+        //到第几页,默认到第一页
+        $(".nav_list li").removeClass("active");
+        $("#"+action+"").parent().addClass("active");
+        if(action=="follows"){
+            //加载我的关注
+            loadMyFollows();
+            return;
+        }else if(action=="replies") {
+            loadMyReplies()
+            return;
+        }
+        to_page(1,action);
+
+    });
+    //到问题页第几页
+    function to_page(pageno,action) {
+        //加载完成之后,发送请求到服务器,拿到jason数据,构建列表数据
+        var url = "/loadPeopleData/"+action;
+        $.ajax({
+            type: "GET",
+            url: url,
+            data: {
+                "pageNo": pageno,
+                "pageSize": 15,
+                contentType: "application/json;charset=UTF-8"
+            },
+            beforeSend: function () {
+                loadingIndex = layer.msg('加载数据~~', {icon: 16});
+            },
+            success: function (data) {
+                layer.close(loadingIndex);
+                if (data.code == "1000") {
+                    if(data.extend.page.total>0){
+                        //构建问题列表信息
+                        build_question_list(data,action);
+                        //构建分页信息
+                        build_page_nav(data,action);
+                    }else{
+
+                    }
+                    $("html,body").animate({scrollTop: 0}, 0);//回到顶端
+                } else {
+                    layer.msg(data.extend.msg, {time: 2000, icon: 5, shift: 6}, function () {
+                    });
+                }
+            }
+        });
+
+    }
+    //我的关注列表
+    function bulid_follow_userList(data) {
+        $("#my_data_wrapper").empty();
+        $('.page_info-area').empty();
+        $(".pagination").empty();
+        var questions = data.extend.userList;
+        $.each(questions, function (index, item) {
+            var followUser=$("<div class=\"fuser col-xs-6 col-md-2\">\n" +
+                "    <a href=\"/people/?id="+item.id+"\" class=\"thumbnail\">\n" +
+                "      <img style='height: 80px;' src=\""+item.avatarUrl+"\" alt=\"...\">\n<div class='text-center'>"+item.name+"</div>" +
+                "    </a>\n" +
+                "  </div>");
+            followUser.appendTo("#my_data_wrapper");
+        })
+
+    }
+    //我的通知列表
+    function bulid_MyReplies_List(data) {
+        $("#my_data_wrapper").empty();
+        $('.page_info-area').empty();
+        $(".pagination").empty();
+        var notification = data.extend.notification;
+        $.each(notification, function (index, item) {
+            var n=$("<div id='n_"+item.id+"' class=\"panel panel-default\">\n" +
+                "                        <div class=\"panel-body\">\n" +
+                "                            <img width=\"30\" class=\"img-rounded\" src=\""+item.notifier.avatarUrl+"\">\n" +
+                "                            "+item.notifier.name+"\n" +
+                "                            <small>\n" +
+                "                                "+item.commentNotificationType+":\n" +
+                "                            </small>\n" +
+                "                            <span style=\"float: right;\">\n" +
+                "                                <span><span id='n_status' class=\""+item.statusClass+"\">"+item.statusMsg+"</span></span>\n" +
+                "                            </span>\n" +
+                "                            \n" +
+                "                            <br>\n" +
+                "                            <small style=\"float: right;cursor:pointer; font-size: 14px;\" class=\"iconfont icon-shanchu2\">\n" +
+                "                                <a onclick='deleteNotificationById("+item.id+")'>删除</a>\n" +
+                "                            </small>\n" +
+                "\n" +
+                "                            <small>\n" +
+                "                                <!--回复问题通知-->\n" +
+                "                                <a href=\"/read/?id="+item.id+"&amp;status="+item.status+"\">"+item.msgTitle+"</a>\n" +
+                "                                <!--回复评论通知-->\n" +
+                "                                \n" +
+                "                                <!--点赞评论通知-->\n" +
+                "                                \n" +
+                "                                <!--点赞问题通知-->\n" +
+                "                                \n" +
+                "                                <!--关注通知-->\n" +
+                "                                \n" +
+                "\n" +
+                "                            </small>\n" +
+                "\n" +
+                "                            <span style=\"color:#303030;float:right;font-size:12px;margin-right: 10px;\">"+item.showTime+"</span>\n" +
+                "                        </div>\n" +
+                "\n" +
+                "                    </div>");
+            n.appendTo("#my_data_wrapper");
+        })
+        if(notification.length!=0){
+            var btns=$(" <div class=\"btn_wrapper\" style=''>\n" +
+                "            <a onclick='readAll()' class=\"btn btn-success btn-sm\">标为已读</a>\n" +
+                "            <a onclick='deleteRead()' class=\"btn btn-danger btn-sm\">删除已读</a>\n" +
+                "        </div>");
+            btns.appendTo("#my_data_wrapper");
+        }else{
+            var info=$("<div class='info_tips text-center'style='margin-top: 40px;color: #999;'>您暂时还没有任何通知~</div>")
+            info.appendTo("#my_data_wrapper");
+        }
+    }
+    //构建分页导航
+    function build_page_nav(data,action) {
+        var page = data.extend.page;
+        //设置当前页
+        currentpage = page.pageNum;
+        //设置末页
+        totalpageo = page.pages;
+        $('.page_info-area').empty();
+        $(".pagination").empty();
+        $('.page_info-area').append("当前第" + page.pageNum + "页,共" + page.pages + "页,共" + page.total + "条记录")
+        //分页导航
+        var nav = $(".pagination");
+        var firstLi = $("<li></li>").append($("<a>首页</a>").attr("href", "#"));
+        var prli = $("<li></li>").append($("<a  aria-label='Previous'><span aria-hidden='true'>&laquo;</span></a>").attr("href", "#"));
+        //首页
+        firstLi.click(function () {
+            to_page(1,action);
+        });
+        //上一页
+        prli.click(function () {
+            var target = page.pageNum - 1;
+            target = target == 0 ? 1 : target;
+            to_page(target,action);
+        })
+        var lastLi = $("<li></li>").append($("<a>末页</a>").attr("href", "#"));
+        var nextli = $("<li></li>").append($("<a  aria-label='Next'><span aria-hidden='true'>&raquo;</span></a>").attr("href", "#"));
+        //末页
+        lastLi.click(function () {
+            //alert("转到:"+page.pages)
+            to_page(page.pages,action);
+        })
+        //下一页
+        nextli.click(function () {
+            var target = page.pageNum + 1;
+            target = target < page.pages ? target : page.pages;
+            to_page(target,action);
+        })
+        nav.append(prli);
+
+        $.each(data.extend.page.navigatepageNums, function (index, item) {
+            var li = $("<li></li>").append($("<a>" + item + "</a>").attr("href", "#"));
+            if (data.extend.page.pageNum == item) {
+                li.addClass("active");
+            }
+            //点击翻页
+            li.click(function () {
+                $(".pagination>li").removeClass("active");
+                $(this).addClass("active");
+                to_page(item,action);
+                return false;
+            })
+            nav.append(li);
+        })
+        nav.append(nextli);
+
+    }
+    //构建questions列表
+    function build_question_list(data,action) {
+        //清空
+        $("#my_data_wrapper").empty();
+        var questions = data.extend.page.list;
+        $.each(questions, function (index, item) {
+            var question = $("<div id='question_"+item.id+"'  class=\"question media\">\n" +
+                "  <div class=\"  media-left \">\n" +
+                "    <a href=\"/people?id=" + item.creator + "\">\n" +
+                "      <img style='width: 45px;margin-right: 20px;' class='img-rounded' src=\" " + item.user.avatarUrl + " \" alt=\"...\">\n" +
+                "    </a>\n" +
+                "  </div>\n" +
+                "  <div class=\"media-body\">\n" +
+                "    <a  href='/question/" + item.id + "' class=\"media-heading question_title\">" + item.title + "</a>\n" +
+                "  <br>  <span style=\"font-size: 12px;\">\n" +
+                "                         <span class='question_type_tag'>" + item.typeName + "</span> • \n" +
+                "                  "+item.user.name+"  •  <span style=\"font-size: 11px;\" class=\"iconfont icon-pinglun1\">" + item.commentCount + "</span>人评论 •\n" +
+                "                     <span><small style='font-size: 11px;' class='iconfont icon-liulan1'></small>" + item.viewCount + "</span>次浏览 •\n" +
+                "                        <span>" + item.likeCount + "</span>人点赞 •\n" +
+                "                        发布于:<spanid=\"publish_time\"><span id='clock' class='iconfont icon-zuijingengxin' ></span>" + item.showTime + "</span>\n" +
+                "            </span>\n" +
+                "    <span style=\"float: right;color: #999999;font-size: 10px !important;\">\n" +
+                "      <small class=\"\">" +
+                "</small>\n" +
+                "  </div>\n" +
+                "</div>");
+            if(action=="questions"){
+                $("<div class='question_btn_wrapper' style='font-size: 11px !important;' ><a  style='color: #777 !important;' class='glyphicon glyphicon-pencil' href='/publish/"+item.id+"'>编辑</a>&nbsp;&nbsp;&nbsp;&nbsp;\n" +
+                    "<a style='color: #777 !important;' class='glyphicon glyphicon-trash' onclick='deleteQuestionById("+item.id+")'>删除</a></div>").appendTo(question);
+            }
+            question.appendTo("#my_data_wrapper");
+
+        })
+    }
+    //我的关注
+    function loadMyFollows() {
+        $.get("/loadMyFollows",{"time":new Date()},function (data) {
+            bulid_follow_userList(data);
+        })
+    }
+    //我的通知
+    function loadMyReplies() {
+        $.get("/loadMyReplies",{"time":new Date()},function (data) {
+            bulid_MyReplies_List(data);
+        })
+    }
+    //我的粉
+    function loadMyFans() {
+        $.get("/loadPeopleFans",{"time":new Date()},function (data) {
+            bulid_fans_userList(data);
+        })
+    }
+    //构建我的粉丝列表
+    function bulid_fans_userList(data) {
+        $("#my_data_wrapper").empty();
+        $('.page_info-area').empty();
+        $(".pagination").empty();
+        var fans = data.extend.fans;
+        $.each(fans, function (index, item) {
+            var followUser=$("<div class=\"fuser col-xs-6 col-md-2\">\n" +
+                "    <a href=\"/people/?id="+item.id+"\" class=\"thumbnail\">\n" +
+                "      <img style='height: 80px;' src=\""+item.avatarUrl+"\" alt=\"...\">\n<div class='text-center'>"+item.name+"</div>" +
+                "    </a>\n" +
+                "  </div>");
+            followUser.appendTo("#my_data_wrapper");
+        })
+    }
+
+    //删除通知
+    function deleteNotificationById(id) {
+        $.get("/deleteNotification",{"id":id,"time":new Date()},function (data) {
+            if(data.code==1000){
+                //成功页面上的关注数添加
+                layer.msg("删除成功", {time: 500, icon: 1, shift: 0}, function () {
+                    $("#n_"+id).remove();
+                });
+            }else {
+                layer.msg(data.message, {time: 1800, icon: 5, shift: 6}, function () {
+                });
+            }
+        })
+        return false;
+    }
+    //全部标为已读
+    function readAll() {
+        $.get("/readAll",{"time":new Date()},function (data) {
+            if(data.code==1000){
+                //成功页面上的关注数添加
+                layer.msg("标为已读 Success~", {time: 500, icon: 1, shift: 0}, function () {
+                    $("#n_status").removeClass("label label-danger")
+                    $("#n_status").addClass("label label-success");
+                });
+            }else {
+                layer.msg(data.message, {time: 1800, icon: 5, shift: 6}, function () {
+                });
+            }
+        })
+    }
+    //删除已读
+    function deleteRead() {
+        $.get("/AjaxDeleteRead",{"time":new Date()},function (data) {
+            if(data.code=="1000"){
+                swal("删除已读成功!","操作成功","success",{
+                    buttons: false,
+                    timer: 1000,
+                }).then((value) => {
+                    window.location.reload();
+            });
+            }else{
+                swal("删除已读成功失败!","操作失败","error");
+
+            }
+        })
+    }
+    //删除我的问题
+    function deleteQuestionById(id) {
+        var url="/deleteQuestion";
+        swal({
+            title: "你确定要抛弃你的问题吗~?",
+            text: "世上没有后悔药咯~",
+            icon: "warning",
+            buttons: true,
+            dangerMode: true,
+        })
+            .then((willDelete) => {
+            if (willDelete) {
+                $.get(url,{"id":id,"time":new Date()},function (data) {
+                    if(data.code==1000){
+                        swal(data.extend.result, {icon: "success",}).then((value) =>
+                        {
+                            $("#question_"+id).remove();
+                    });
+                    }else {
+                        swal(data.msg, {
+                            icon: "error",
+                        });
+                    }
+                });
+            } else {
+                swal("删除失败，你的问题安全了!");
+    }
+    })
+
+    }
+
+</script>
+</html>
+
+
+

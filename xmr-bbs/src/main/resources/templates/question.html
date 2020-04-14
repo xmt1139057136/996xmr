@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>[[${question.title}]]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="stylesheet" th:href="@{/css/my.css}">
+    <link rel="stylesheet" th:href="@{/css/iconfont.css}">
+    <link rel="stylesheet" href="webjars/bootstrap/3.3.5/css/bootstrap.min.css" th:href="@{/webjars/bootstrap/3.3.5/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/editormd.preview.css}"/>
+</head>
+<style>
+</style>
+<body>
+<style>
+    .comment{margin-top: 15px;}
+</style>
+<!--引入导航条-->
+<div th:insert="~{navbar :: navbar}"></div>
+<!--内容部分-->
+<div class="header"></div>
+<div class="container main">
+    <div class="row" style="margin-right:5px;margin-left: 5px;">
+        <!---左边部分-->
+        <div class="col-lg-9 col-md-12 col-sm-12 lefwrapper ">
+            <!--标题-->
+            <quote style="margin-top: 10px;"><span class="glyphicon glyphicon-tasks"></span>
+                <span style="font-size:25px;font-weight: 700" th:text="${question.title}"></span>
+            </quote>
+            <div style="margin-top: 5px;"></div>
+            <!--发布时间,作者,阅读-->
+            <span style="color:#999;font-size: 12px">活动 | 作者: <span th:text="${question.user.name}"></span> | 发布于: <span
+                    th:text="${#dates.format(question.gmtCreate, 'yyyy年MM月dd日 hh:mm:ss')}"></span> | 预计阅读时间：1分钟 | 阅读数： <span
+                    th:text="${question.viewCount}"></span></span>
+            <hr>
+            <!--内容-->
+            <div id="question-view" style="margin: 0px;padding: 0px;" class="col-lg-12 col-md-12 col-sm-12">
+                <!-- Server-side output Markdown text -->
+                <textarea style="display:none;margin: 0px;padding: 0px;"  th:text="${question.description}">### Hello world!</textarea>
+            </div>
+            <hr class="col-lg-12 col-md-12 col-sm-12">
+            <!--编辑-->
+            <span class="col-lg-12 col-md-12 col-sm-12" style="font-size: 12px;">
+                <a th:if="${session.user!=null&& question.creator==session.user.id}" style="cursor: pointer"
+                   th:href="@{/publish/}+${question.id}">
+                    <span class="iconfont icon-bianji-01"></span>&nbsp;编辑
+                </a>
+                    &nbsp;   &nbsp;
+                <a style="cursor: pointer">
+                <span class="iconfont icon-fenxiang"></span>&nbsp;分享
+                </a>
+                  &nbsp;&nbsp;
+                <a style="cursor: pointer" class="collectBtn" th:id="${question.id}">
+                <span class="glyphicon glyphicon-star"></span>&nbsp;<span th:text="${collect_users!=null&&collect_users.size()>0 ? collect_users.size():'0'}"></span>收藏
+                </a>
+                   &nbsp;   &nbsp;
+                <a style="cursor: pointer" th:data-questionid="${question.id}" onclick="likeQuestion(this)">
+                <span th:id="questionlike_btn" class="iconfont icon-dianzan"></span>点赞<span th:id="likeQuestionCount">[[${question.likeCount}]]</span>
+                </a>
+
+
+
+
+            </span>
+            <hr class="col-lg-12 col-md-12 col-sm-12">
+            <!--标签内容-->
+            <small style="color:#666;">标签</small>&nbsp;&nbsp;&nbsp;
+            <span style="color:#999;font-size: 12px;cursor: pointer" th:each="tag,tagStat:${question.tag.split(',')}">
+                <span class="label label-info">
+                 <span class="glyphicon glyphicon-tags"></span>&nbsp;&nbsp;&nbsp;[[${tag}]]</span>
+            </span>
+            <hr>
+            <!--评论列表部分-->
+            <div th:if="${comments!=null&&comments.size()>0}">
+                <strong style="font-weight: 700">评论人数:[[${comments.size()}]]人</strong>
+                <!--评论列表-->
+                <hr>
+                <div class="row">
+                    <div class=" col-lg-12 col-md-12 col-sm-12">
+                        <div class="media" th:if="${comments!=null}" th:each="comment:${comments}" style="border-bottom: 1px solid #eeeeff;padding-bottom: 5px;">
+                            <div class="media-left">
+                                <a href="#">
+                                    <img style="margin-top: 0px;margin-right: 10px;" th:width="42" class="media-object img-rounded"
+                                         th:src="${comment.user.avatarUrl}" src="..." alt="...">
+                                </a>
+                            </div>
+                            <div class="media-body">
+                                <small class="media-heading">
+                                    <span style="font-size: 11px;" th:text="${comment.user.name}"></span></small>
+                                <br>
+                                <span style="font-size: 12px;color: #303030;" th:text="${comment.content}"></span>
+                                <!--一级评论-->
+                                <div class="comment">
+                                    <!--点赞-->
+                                    <span th:id="'commentlike_btn'+${comment.id}" th:data-commentId="${comment.id}" onclick="likeComment(this)"
+                                          style="margin-top: 20px;font-size: 15px;cursor: pointer;"
+                                          class="iconfont icon-dianzan"></span>
+                                    <strong style="font-size: 11px;" th:id="'likecount'+${comment.id}">[[${comment.likeCount}]]</strong></span>&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <!--回复-->
+                                    <span style="font-size:10px; cursor: pointer;" class="iconfont icon-huifu" th:data-commentId="${comment.id}"
+                                          onclick="toggleComments(this)">
+                                    <strong>[[${comment.commentCount}]]</strong></span>
+                                    <small style="float: right;font-size: 11px;"
+                                           th:text="${comment.showTime}"></small>
+                                </div>
+                                <!--二级评论-->
+                                <div class="collapse " style="margin-top: 10px;" status="close"
+                                     th:id="'two_comment_'+${comment.id}"
+                                     id="collapseExample">
+                                    <div class="well">
+                                        <div class="comment-btn-wrapper" style="margin-top: 0px;">
+                                            <div class=" col-lg-12 col-md-12 col-sm-12"
+                                                 th:id="'comment2_wrapper_'+${comment.id}">
+                                            </div>
+                                            <input style="margin-bottom: 15px;" class="form-control"
+                                                   th:id="'two_content_'+${comment.id}" placeholder="请输入评论内容"
+                                                   type="input">
+                                            <div><a class="btn btn-sm btn-success" th:data-commentId="${comment.id}"
+                                                    onclick="addcomment2(this)">评论</a>
+                                                <a class="btn btn-sm btn-default">取消</a></div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--发表输入框-->
+            <div class="text-center" th:if="${session.user==null}"><small>登入后发表评论</small></div>
+            <hr>
+
+            <input type="hidden" id="parentId" th:value="${question.id}">
+            <div class="row">
+                <div class="col-lg-12 col-md-12 col-sm-12" id="comment_area">
+                    <div th:if="${session.user!=null}">
+                        <img class="img-rounded" width="40" style="padding:5px;"
+                             th:src="${session.user.getAvatarUrl()}">
+                        <span th:text="${session.user.getName()}"></span>
+                    </div>
+                    <br>
+                    <div th:if="${session.user==null}">
+                        <img th:width="30" style="margin-bottom: 18px;" th:src="@{/images/nm.png}">
+                        [匿名用户]
+                    </div>
+                    <textarea id="commentContent" class="form-control" rows="3"  th:placeholder="请输入你的评论内容"></textarea>
+                    <a onclick="addComment()" href="javascript:;" style="float: right;margin-top: 20px;margin-bottom:20px;cursor: pointer" class="btn btn-sm btn-success">评论</a>
+                </div>
+            </div>
+        </div>
+        <!--右边部分-->
+        <div class="col-lg-3 col-md-12 col-sm-12 rightwrapper" style="padding-top: 15px;padding-bottom: 20px">
+            <!--发起人信息-->
+            <small style="color:#333;"><span class="fui-user"></span>发起人:</small>
+            <hr>
+            <small>
+                <a th:href="@{/people}+'?id='+${question.creator}">
+                <img class="img-rounded" width="40px;" th:src="${question.user.avatarUrl}">
+                </a>
+            </small>
+            <hr>
+            <div class="name" th:if="${question.user.name!=null && question.user.name!=''}">
+                <small>昵称:</small>
+                <span style="font-size:12px;color: #155faa;" th:text="${question.user.name}"></span>
+            </div>
+            <div class="commpany" th:if="${question.user.company!=null && question.user.company!=''}">
+                <small>公司:</small>
+                <span style="font-size:12px;color: #155faa;" th:text="${question.user.company}"></span>
+            </div>
+            <div class="location" th:if="${question.user.location!=null && question.user.location!=''}">
+                <small>所在地:</small>
+                <span style="font-size:12px;color: #155faa;" th:text="${question.user.location}"></span><br>
+            </div>
+            <div class="bio" th:if="${question.user.bio!=null && question.user.bio!=''}">
+                <small>个人简介:</small>
+                <span style="font-size:12px;color: #155faa;" th:text="${question.user.bio}"></span>
+            </div>
+            <div class="bio" th:if="${question.user.bio!=null && question.user.bio!=''}">
+                <small>积分:</small>
+                <span style="font-size:12px;color: #155faa;" th:text="${integral}">0</span>
+            </div>
+            <hr th:height="1px">
+            <!--相关问题--->
+            <small style="color:#333;"><span class="fui-list-columned"></span>&nbsp;相关问题</small>
+
+            <hr>
+            <ul style="margin: 0px;padding: 0px;list-style: none">
+                <div style="color: #999999;" th:if="${relatedQuestions==null||relatedQuestions.size()==0}"><small>暂时没有相关问题</small></div>
+                <li id="rq" style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;cursor: pointer;" th:each="related:${relatedQuestions}">
+                    <a th:title="${related.title}" th:href="@{/question/}+${related.id}"
+                       style="cursor: pointer;font-size:12px;color: #155faa;">[[${related.title}]]</a>
+                </li>
+            </ul>
+            <hr>
+            <!--收藏--->
+            <div style="color: #999999;" th:if="${collect_users==null||collect_users.size()==0}"><small>暂时没有人关注</small></div>
+            <small th:if="${collect_users!=null&&collect_users.size()>0}" style="color:#333;"><span class="fui-list-columned"></span>&nbsp;<span th:text="${collect_users!=null&&collect_users.size()>0 ? collect_users.size():'0'}"></span>人关注</small>
+            <hr>
+
+            <a  th:each="user:${collect_users}" th:href="@{/people(id=${user.id})}"><img class="img-rounded"  style="margin-left: 2px;" width="22" th:src="${user.avatarUrl}"></a>
+            <hr>
+            <small><span class="fui-list-small-thumbnails"></span>文章结构</small>
+            <hr>
+            <div id="custom-toc-container" style="font-size: 11px;"></div>
+        </div>
+    </div>
+
+</div>
+<div th:insert="~{footer :: footer}"></div>
+<script src="webjars/jquery/3.1.1/jquery.min.js" th:src="@{/webjars/jquery/3.1.1/jquery.min.js}"></script>
+<script th:src="@{/editormd.js}"></script>
+<script th:src="@{/lib/marked.min.js}"></script>
+<script th:src="@{/lib/prettify.min.js}"></script>
+<script th:src="@{/layer/layer.js}"></script>
+<script th:src="@{/js/sweetalert.min.js}"></script>
+<script src="webjars/bootstrap/3.3.5/js/bootstrap.min.js" th:src="@{/webjars/bootstrap/3.3.5/js/bootstrap.min.js}"></script>
+<script th:src="@{/js/register.js}"></script>
+<script type="text/javascript">
+    //弹出登入框
+    $('.login_btn').click(function () {
+        $(".login_modal").modal("show");
+        return false;
+    })
+    //收藏问题
+    $(".collectBtn").click(function () {
+        var id=$(this).attr("id");
+        $.get("/doCollect",{"time":new Date(),"id":id},function (data) {
+            if(data.code==1000){
+                swal("问题收藏成功!", "操作成功！!", "success",
+                    {
+                        buttons: false,
+                        timer: 1000,
+                    })
+            }else {
+                swal(data.message, data.message,"info",  {
+                    buttons: false,
+                    timer: 1000,
+                });
+            }
+        })
+        return false;
+    })
+    //点赞问题
+    function likeQuestion(e) {
+        var id = e.getAttribute("data-questionid");
+        var url = "/likeQuestion";
+        var args = {"id": id, "time": new Date()};
+        $.get(url, args, function (data) {
+            if (data.code == 1000) {
+                swal("点赞成功!", "老哥,谢谢你的赞!", "success",
+                    {
+                        buttons: false,
+                        timer: 1000,
+                    });
+
+                $("#questionlike_btn").css({
+                    color: 'rgb(255, 87, 34)',
+                });
+                $("#likeQuestionCount").html(data.extend.likequestioncount);
+            } else {
+                layer.msg(data.message, {time: 1800, icon: 5, shift: 6}, function () {
+                });
+            }
+        })
+        return false;
+    }
+
+    //点赞评论
+    function likeComment(e) {
+        var id = e.getAttribute("data-commentid");
+        var url = "/likeComment";
+        var args = {"id": id, "time": new Date()};
+        $.get(url, args, function (data) {
+            if (data.code == 1000) {
+                swal("点赞成功", "谢谢你的支持~", "success",
+                    {
+                        buttons: false,
+                        timer: 1000,
+                    })
+                $("#likecount" + id).text(data.extend.likecount);
+                $("#commentlike_btn" + id).css({
+                    color: '#f40',
+                })
+            } else {
+                layer.msg(data.message, {time: 1800, icon: 5, shift: 6}, function () {
+                });
+            }
+        })
+        return false;
+    }
+
+    //展开二级评论
+    function toggleComments(e) {
+        var id = e.getAttribute("data-commentid");
+        if ($("#two_comment_" + id).attr("status") == "close") {
+            //后台获取二级数据
+            var url = "/comment/" + id;
+            $.get(url, function (data) {
+                //构建二级评论列表
+                BuildComments(data.extend.comment2s, id);
+                if (data.code == 1000) {
+                    $("#two_comment_" + id).slideDown("fast");
+                    $("#two_comment_" + id).attr("status", "open");
+                }
+            })
+        } else {
+            $("#two_comment_" + id).slideUp("fast");
+            $("#two_comment_" + id).attr("status", "close");
+        }
+
+    }
+
+    //构建列表
+    function BuildComments(comments, id) {
+        var wrapper = $("#comment2_wrapper_" + id);
+        wrapper.empty();
+        $.each(comments, function (index, item) {
+            var comment = $('' +
+                '<div class="media two_comment" style="margin-top: 5px;">\n' +
+                '  <div class="media-left">\n' +
+                '    <a href="#">\n' +
+                '      <img width="40"  class="media-object img-rounded" src="' + item.user.avatarUrl + '" alt="...">\n' +
+                '    </a>\n' +
+                '  </div>\n' +
+                '  <div class="media-body">\n' +
+                '    <h4 class="media-heading" style="font-size: 11px;font-weight: normal">' + item.user.name + '</h4>\n' +
+                '   <strong style="font-size: 12px;"> ' + item.content + '</strong>\n' +
+                '  <small style="float: right;font-size: 11px;">'+item.showTime+'</small></div>\n' +
+                '</div><hr style="color: #303030">\n');
+            comment.appendTo(wrapper);
+        })
+
+    }
+
+    //发表一级评论信息
+    function addComment() {
+        var parentId = $("#parentId").val();
+        var content = $("#commentContent").val();
+        commentAdd(parentId, content, 1);
+    }
+
+    //二级评论发表
+    function addcomment2(e) {
+        var parentId = e.getAttribute("data-commentid");
+        var content = $("#two_content_" + parentId).val();
+        commentAdd(parentId, content, 2);
+        $("#two_content_" + parentId).val("");
+
+    }
+
+    //公共方法
+    function commentAdd(parentId, content, type) {
+        var url = "/comment";
+        var args = {
+            "parentId": parentId.trim(),
+            "content": content,
+            "time": new Date(),
+            "type": type,
+            contentType: "application/json;charset=UTF-8"
+        }
+        if (!content || content.trim() == "") {
+            swal("评论内容不能为空", "请填写评论内容", "warning")
+            return false;
+        }
+        if (content.length > 50) {
+            swal("评论内容不能超过30个字", "写少点吧~~", "warning")
+        }
+        $.post(url, args, function (data) {
+            if (data.code != "1000") {
+                swal(data.message, data.message, "warning")
+            } else {
+                //alert("评论成功");
+                //$("#comment_area").hide();
+                $("#commentContent").val("");
+                    swal("评论成功~", "评论成功~", "success",
+                        {
+                            buttons: false,
+                            timer: 1000,
+                        })
+                        .then((value) => {
+                        window.location.reload();
+                })
+            }
+        });
+        return false;
+    }
+
+    $(function () {
+        editormd.markdownToHTML("question-view", {
+            path: "/lib/*",  // Autoload modules mode, codemirror, marked... dependents libs path
+            htmlDecode: "style,script,iframe",
+            emoji: true,
+            taskList: true,
+            htmlDecode: true,
+            htmlDecode: "dark,script,iframe",
+            //flowChart: true,
+            tocm: true,
+            tex: true,
+            tocContainer: "#custom-toc-container", // 自定义 ToC 容器层
+
+        });
+    });
+
+</script>
+</body>
+</html>
+<script>
+    $("#dologin_btn").click(function () {
+        var username=$("#login_username").val().trim();
+        var password=$("#login_password").val().trim();
+        if(username==null||username==""){
+            layer.msg("用户名不能为空", {time: 2000, icon: 5, shift: 6}, function () {
+            });
+            return false;
+        }
+        if(password==null||password==""){
+            layer.msg("密码不能为空", {time: 2000, icon: 5, shift: 6}, function () {
+            });
+            return false;
+        }
+        $.post("/login",{"username":username,"password":password,"time":new Date()},function (data) {
+            if(data.code==1000){
+                swal("恭喜你已登入成功~", "稍作等待，正在努力跳转中~", "success",
+                    {
+                        buttons: false,
+                        timer: 2500,
+                    })
+                    .then((value) => {
+                    window.location.href="/";
+            });
+            }else {
+                layer.msg(data.message, {time: 2000, icon: 5, shift: 6}, function () {
+                });
+            }
+        })
+    });
+</script>
